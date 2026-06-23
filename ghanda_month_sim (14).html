@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Ghanda Finance Bootcamp — Monthly Roster Simulator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+:root{
+  --teal:#1F5C6B;--teal-d:#174d59;--teal-lt:#E8F4F6;--teal-pal:#D5E8F0;--teal-mid:#2A7A8C;
+  --green:#1A6B3A;--green-lt:#E8F5EE;--green-d:#085041;
+  --red:#A32D2D;--red-lt:#FCEBEB;
+  --gold:#854F0B;--gold-lt:#FEF6E4;
+  --dark:#1A2E35;--slate:#4A6572;--grey:#8FA3AB;
+  --bg:#F7FBFC;--surface:#FFFFFF;--border:#D5E8F0;
+  --purple:#3C3489;--purple-lt:#EEEDFE;
+  --orange:#B85C00;--orange-lt:#FEF0E0;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;font-size:15px}
+.screen{display:none}.screen.active{display:block}
+.page{max-width:540px;margin:0 auto;padding:16px 14px 40px}
+.pick-hdr{background:var(--teal);padding:24px 16px 20px;margin:-16px -14px 20px}
+.pick-title{font-size:22px;font-weight:800;color:#fff}
+.pick-sub{font-size:13px;color:var(--teal-lt);margin-top:5px;line-height:1.55}
+.scen-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none}
+.scen-card:active{border-color:var(--teal);background:var(--teal-lt)}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.badge-a{background:var(--purple-lt);color:var(--purple)}.badge-b{background:var(--gold-lt);color:var(--gold)}
+.scen-name{font-size:18px;font-weight:700;color:var(--teal);margin-bottom:6px}
+.scen-desc{font-size:13px;color:var(--slate);line-height:1.55;margin-bottom:10px}
+.scen-meta{font-size:12px;color:var(--grey)}.scen-meta strong{color:var(--dark)}
+.scen-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:26px;color:var(--teal-pal);pointer-events:none}
+.slabel{font-size:11px;font-weight:700;color:var(--teal);letter-spacing:0.8px;margin-bottom:10px;text-transform:uppercase}
+.email-wrap{background:var(--surface);border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.email-from{background:var(--teal-lt);padding:11px 16px;border-bottom:1px solid var(--teal-pal);font-size:12px;color:var(--slate)}
+.email-from strong{color:var(--teal)}
+.email-subj{padding:14px 16px 0;font-size:17px;font-weight:700;color:var(--dark)}
+.email-body{padding:12px 16px 16px;font-size:13px;color:var(--slate);line-height:1.65}
+.email-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.email-table th{background:var(--teal);color:#fff;padding:7px 8px;text-align:left;font-weight:600}
+.email-table td{padding:6px 8px;border-bottom:1px solid var(--teal-lt)}
+.email-table tr:nth-child(even) td{background:var(--teal-lt)}
+.email-table .wk-hdr td{background:var(--teal-pal);font-weight:700;color:var(--teal);font-size:11px;text-transform:uppercase;padding:5px 8px}
+.email-table .ph-row td{background:#FFF3E0;color:var(--orange);font-weight:600}
+.bmark-box{background:var(--teal-lt);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:10px 14px;margin-top:12px;font-size:13px}
+.bmark-box strong{color:var(--teal)}
+.min-note{background:#FFF8ED;border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--dark);line-height:1.65}
+.roster-hdr{background:var(--teal);padding:14px 16px;margin:-16px -14px 0;display:flex;align-items:center;gap:12px}
+.back-btn{background:rgba(255,255,255,0.18);border:none;color:#fff;width:44px;height:44px;border-radius:10px;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-user-select:none}
+.rh-title{font-size:17px;font-weight:700;color:#fff}.rh-sub{font-size:12px;color:var(--teal-lt);margin-top:1px}
+.week-progress{display:flex;gap:4px;padding:10px 14px;background:var(--teal-d);margin:0 -14px 14px}
+.wp-dot{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,0.2)}.wp-dot.done{background:rgba(255,255,255,0.9)}.wp-dot.active{background:#02C39A}
+.ctx{border-left:4px solid var(--teal);background:var(--teal-lt);border-radius:0 10px 10px 0;padding:11px 14px;margin-bottom:12px;font-size:13px;color:var(--slate);line-height:1.6}
+.ctx.warn{background:var(--gold-lt);border-color:var(--gold)}.ctx.good{background:var(--green-lt);border-color:var(--green)}.ctx.ph{background:var(--orange-lt);border-color:var(--orange)}
+.day-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.day-card.ph-day{border-color:var(--orange);background:#FFFAF5}
+.day-hdr{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--teal-lt)}
+.day-card.ph-day .day-hdr{background:var(--orange-lt);border-color:#F5C896}
+.day-name-big{font-weight:700;font-size:15px}
+.day-bgt-tag{font-size:13px;color:var(--slate);font-weight:600}
+.day-note-line{font-size:11px;padding:5px 14px 0;font-style:italic;color:var(--slate)}
+.day-note-line.ph{color:var(--orange);font-weight:600;font-style:normal}
+.day-body{padding:10px 14px 12px}
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-row input[type=range]{flex:1;height:44px;accent-color:var(--teal);cursor:pointer;-webkit-appearance:none;appearance:none;background:transparent}
+.slider-row input[type=range]::-webkit-slider-runnable-track{height:6px;background:var(--teal-pal);border-radius:3px}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:var(--teal);margin-top:-10px;cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.slider-row input[type=range]::-moz-range-track{height:6px;background:var(--teal-pal);border-radius:3px}
+.slider-row input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.day-card.ph-day .slider-row input[type=range]::-webkit-slider-thumb{background:var(--orange)}
+.day-card.ph-day .slider-row input[type=range]::-moz-range-thumb{background:var(--orange)}
+.day-card.ph-day .slider-row input{accent-color:var(--orange)}
+.slider-val{font-weight:700;font-size:15px;color:var(--teal);min-width:52px;text-align:right}
+.day-est-info{margin-top:6px;font-size:12px;padding:7px 10px;background:var(--bg);border-radius:8px;display:flex;justify-content:space-between;align-items:center}
+.ph-label{font-weight:600}
+.trend-info{text-align:right;color:var(--grey);font-size:11px;line-height:1.4}
+.summary-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.sb-row{display:flex;justify-content:space-between;align-items:flex-start;font-size:13px;padding:4px 0;border-bottom:1px solid var(--teal-lt)}
+.sb-row:last-child{border-bottom:none}
+.sb-label{color:var(--slate);flex:1;padding-right:8px}.sb-val{font-weight:600}
+.sb-val.good{color:var(--green)}.sb-val.warn{color:var(--gold)}.sb-val.bad{color:var(--red)}
+.hrs-box{border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;line-height:1.6;border:1px solid}
+.hrs-box.ok{background:var(--green-lt);border-color:#5DCAA5}.hrs-box.low{background:var(--gold-lt);border-color:#F0D899}.hrs-box.over{background:var(--red-lt);border-color:#F09595}
+.big-btn{width:100%;padding:18px;background:var(--teal);color:#fff;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;margin-bottom:10px;-webkit-appearance:none;appearance:none;display:block;text-align:center;-webkit-tap-highlight-color:rgba(0,0,0,0.1)}
+.big-btn:active{background:var(--teal-d)}.big-btn:disabled{background:var(--grey);cursor:default;pointer-events:none}
+.res-hdr{padding:20px 16px 16px;margin:-16px -14px 16px}
+.res-hdr-title{font-size:22px;font-weight:800;color:#fff}.res-hdr-sub{font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px}
+.scorecard{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.sc-hdr{background:var(--teal);padding:9px 14px;font-size:11px;font-weight:700;color:var(--teal-lt);letter-spacing:0.8px;text-transform:uppercase}
+.sc-row{display:flex;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--teal-lt)}
+.sc-row:last-child{border-bottom:none}.sc-row.total{background:var(--teal-pal)}
+.sc-icon{font-size:18px;margin-right:10px;flex-shrink:0;width:26px;text-align:center;padding-top:1px}
+.sc-label{flex:1}.sc-label-main{font-weight:600;color:var(--dark);font-size:13px}
+.sc-label-sub{font-size:11px;color:var(--grey);margin-top:2px}
+.sc-result{text-align:right;flex-shrink:0;margin-left:8px}
+.sc-val{font-size:14px;font-weight:700}.sc-sub{font-size:11px;color:var(--grey);margin-top:2px}
+.hit{color:var(--green)}.miss{color:var(--red)}.warn-c{color:var(--gold)}
+.kpi-badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:5px}
+.kpi-badge.hit{background:var(--green-lt);color:var(--green)}.kpi-badge.miss{background:var(--red-lt);color:var(--red)}.kpi-badge.opp{background:#FFF3E0;color:var(--orange)}
+.tip-card{border-radius:14px;padding:16px;margin-bottom:12px;border:1.5px solid}
+.tip-icon{font-size:26px;margin-bottom:8px}.tip-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.tip-body{font-size:13px;line-height:1.65;color:var(--slate)}
+.mtd-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.mtd-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--teal-lt);font-size:13px}
+.mtd-row:last-child{border-bottom:none}
+.final-hdr{padding:28px 20px 20px;margin:-16px -14px 20px;text-align:center}
+.score-circle{width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.15);border:4px solid rgba(255,255,255,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:16px auto}
+.score-num{font-size:46px;font-weight:800;color:#fff;line-height:1}
+.score-grade{font-size:20px;font-weight:700;color:rgba(255,255,255,0.9);margin-top:6px}
+.bonus-box{background:var(--green-lt);border:2px solid #5DCAA5;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px}
+.bonus-lbl{font-size:13px;color:var(--green);margin-bottom:4px}
+.bonus-amt{font-size:40px;font-weight:800;color:var(--green)}
+.bonus-max{font-size:12px;color:var(--grey);margin-top:2px}
+.final-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kpi-card{border-radius:12px;padding:12px;border:1.5px solid}
+.kpi-hit{background:var(--green-lt);border-color:#5DCAA5}.kpi-miss{background:var(--red-lt);border-color:#F09595}.kpi-opp{background:#FFF3E0;border-color:#F5C896}
+.kpi-name{font-size:11px;font-weight:700}
+.kpi-hit .kpi-name{color:var(--green-d)}.kpi-miss .kpi-name{color:#791F1F}.kpi-opp .kpi-name{color:var(--orange)}
+.kpi-status{font-size:18px;font-weight:700}
+.kpi-hit .kpi-status{color:var(--green)}.kpi-miss .kpi-status{color:var(--red)}.kpi-opp .kpi-status{color:var(--orange)}
+.kpi-detail{font-size:11px;margin-top:3px}
+.kpi-hit .kpi-detail{color:var(--green-d)}.kpi-miss .kpi-detail{color:#791F1F}.kpi-opp .kpi-detail{color:var(--orange)}
+.breakdown-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.good{color:var(--green)}.warn{color:var(--gold)}.bad{color:var(--red)}.neu{color:var(--grey)}
+</style>
+</head>
+<body>
+
+<div id="screen-pick" class="screen active">
+<div class="page">
+  <div class="pick-hdr">
+    <div class="pick-title">Monthly Roster Simulator</div>
+    <div class="pick-sub">Receive your store's budget email, set your roster day by day for 4 weeks, and get a weekly scorecard. Your score is based purely on your $PH decisions — make them count.</div>
+  </div>
+  <div class="slabel">Choose your store</div>
+  <div class="scen-card" id="card-a">
+    <span class="scen-arrow">›</span>
+    <span class="badge badge-a">STORE A — HIGH GROSSING</span>
+    <div class="scen-name">Westfield Central</div>
+    <div class="scen-desc">Large shopping centre store. School holidays Week 1, public holiday in Week 2 — lean roster and push $PH high. Weeks 3 and 4 are steady. Managing the post-holiday transition is the challenge.</div>
+    <div class="scen-meta">$PH benchmark <strong>$250</strong> &nbsp;·&nbsp; Monthly budget <strong>~$163k</strong> &nbsp;·&nbsp; Avg Sale benchmark <strong>$75</strong> &nbsp;·&nbsp; <strong>9am–9pm</strong></div>
+  </div>
+  <div class="scen-card" id="card-b">
+    <span class="scen-arrow">›</span>
+    <span class="badge badge-b">STORE B — LOW GROSSING</span>
+    <div class="scen-name">Marina Lane Lifestyle</div>
+    <div class="scen-desc">Smaller lifestyle strip store, 9am–5pm. Cold quiet start in Week 1. Stock delivery Week 2. Local festival boosts Week 3. Week 4 is make-or-break. Lower sales, same discipline required.</div>
+    <div class="scen-meta">$PH benchmark <strong>$175</strong> &nbsp;·&nbsp; Monthly budget <strong>~$45k</strong> &nbsp;·&nbsp; Avg Sale benchmark <strong>$75</strong> &nbsp;·&nbsp; <strong>9am–5pm</strong></div>
+  </div>
+  <p style="font-size:12px;color:var(--grey);margin-top:4px;text-align:center">Tap a store to begin</p>
+</div>
+</div>
+
+<div id="screen-email" class="screen">
+<div class="page">
+  <div class="pick-hdr">
+    <div style="font-size:12px;color:var(--teal-lt);font-weight:600;margin-bottom:4px">STEP 1 — READ BEFORE YOU ROSTER</div>
+    <div class="pick-title">Your Budget Email</div>
+    <div class="pick-sub">Read carefully — this is what Finance sends at the start of every month.</div>
+  </div>
+  <div class="email-wrap">
+    <div class="email-from"><strong>From:</strong> Lucy Reed — Finance &nbsp;·&nbsp; <strong>To:</strong> <span id="email-to"></span></div>
+    <div class="email-subj">July 2026 Budget &amp; Rostering Guide</div>
+    <div class="email-body">
+      <div id="email-intro"></div>
+      <table class="email-table" id="email-table"></table>
+      <div class="bmark-box" id="email-bmarks"></div>
+      <div class="min-note" id="email-min-note"></div>
+      <div id="email-notes" style="margin-top:12px;font-size:13px;line-height:1.7;color:var(--slate)"></div>
+    </div>
+  </div>
+  <button class="big-btn" id="btn-start-roster">Start Week 1 Roster ›</button>
+</div>
+</div>
+
+<div id="screen-roster" class="screen">
+<div class="page">
+  <div class="roster-hdr">
+    <button class="back-btn" id="btn-back">‹</button>
+    <div><div class="rh-title" id="r-title"></div><div class="rh-sub" id="r-sub"></div></div>
+  </div>
+  <div class="week-progress" id="r-dots"></div>
+  <div id="r-contexts"></div>
+  <div id="r-days"></div>
+  <div class="hrs-box" id="hrs-box"></div>
+  <div class="summary-bar" id="r-summary"></div>
+  <button class="big-btn" id="r-submit">Confirm Week <span id="r-wk-num">1</span> Roster ›</button>
+</div>
+</div>
+
+<div id="screen-wres" class="screen">
+<div class="page">
+  <div class="res-hdr" id="wres-hdr">
+    <div class="res-hdr-title" id="wres-title"></div>
+    <div class="res-hdr-sub" id="wres-sub"></div>
+  </div>
+  <div class="slabel">Weekly scorecard</div>
+  <div class="scorecard" id="wres-scorecard"></div>
+  <div class="slabel" style="margin-top:4px">Day by day</div>
+  <div class="scorecard" id="wres-days"></div>
+  <div class="tip-card" id="wres-tip"></div>
+  <div class="mtd-card" id="wres-mtd" style="display:none">
+    <div class="slabel" style="margin-bottom:10px">Month to date</div>
+    <div id="wres-mtd-rows"></div>
+  </div>
+  <button class="big-btn" id="wres-next">—</button>
+</div>
+</div>
+
+<div id="screen-final" class="screen">
+<div class="page">
+  <div class="final-hdr" id="final-hdr">
+    <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:4px">Month complete!</div>
+    <div style="font-size:20px;font-weight:800;color:#fff" id="final-store"></div>
+    <div class="score-circle">
+      <div class="score-num" id="final-num">—</div>
+      <div class="score-grade" id="final-grade"></div>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px">Score based on $PH efficiency (hours decisions)</div>
+  </div>
+  <div class="bonus-box" id="final-bonus"></div>
+  <div class="slabel">Monthly KPI results</div>
+  <div class="final-kpi-grid" id="final-kpis"></div>
+  <div class="breakdown-card" id="final-breakdown"></div>
+  <div class="tip-card" id="final-tip" style="background:var(--teal-lt);border-color:var(--teal-pal)"></div>
+  <button class="big-btn" id="btn-try-other">Try the other scenario ›</button>
+</div>
+</div>
+
+<script>
+var sc=null,cw=0,wkHrs=[],wkResults=[],mthSales=0,mthHrs=0;
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+// Base sales = what store earns at FORMULA hours (budget/bench)
+// Designed so formula hours give exactly benchmark $PH
+// Est sales shown on day card is FIXED (prior week trend) — does NOT change with sliders
+// Slider only affects $PH display and scoring
+
+var SC={
+  A:{
+    id:'A',name:'Store A — Westfield Central',manager:'Jordan',
+    hours:'9am–9pm',minHrs:14,bench:250,monthlyBudget:163200,maxHrsMonth:660,
+    avgBench:75,emailBench:75,bonusPH:65,bonusAvg:48,bonusEmail:37,bonusSales:120,
+    weeks:[
+      {label:'Week 1 — School Holidays',maxHrs:200,
+       ctx:'School holidays are on — your biggest week. High targets, high traffic. You have 200 max hours. Roster to demand but keep a buffer in reserve for anything unexpected.',
+       days:[
+        {d:'Mon',dt:'Mon 30 Jun',bgt:5400, base:5600, est:5600, def:22,min:14,max:28},
+        {d:'Tue',dt:'Tue 1 Jul', bgt:4800, base:4950, est:4950, def:20,min:14,max:26},
+        {d:'Wed',dt:'Wed 2 Jul', bgt:6800, base:7200, est:7200, def:28,min:14,max:32,note:'Mid-week spike'},
+        {d:'Thu',dt:'Thu 3 Jul', bgt:6000, base:6400, est:6400, def:26,min:14,max:30},
+        {d:'Fri',dt:'Fri 4 Jul', bgt:8800, base:9500, est:9500, def:34,min:14,max:36},
+        {d:'Sat',dt:'Sat 5 Jul', bgt:14400,base:15800,est:15800,def:34,min:14,max:38,note:'Biggest day'},
+        {d:'Sun',dt:'Sun 6 Jul', bgt:10800,base:11800,est:11800,def:32,min:14,max:36}
+       ]},
+      {label:'Week 2 — Post-Holidays + Public Holiday',maxHrs:160,
+       ctx:'Holidays are over — trade drops. Tuesday is a public holiday: roster as lean as possible and push $PH as high as you can. Post-holiday weekdays will be quiet too.',
+       phNote:'Tuesday is a PUBLIC HOLIDAY. Roster lean — fewer hours = higher $PH. Push it as high as possible while keeping the floor covered.',
+       days:[
+        {d:'Mon',dt:'Mon 7 Jul', bgt:3200, base:2900, est:2900, def:20,min:14,max:26,note:'Hols over — quiet'},
+        {d:'Tue',dt:'Tue 8 Jul', bgt:2800, base:3200, est:3200, def:16,min:14,max:22,note:'🏖️ Public Holiday — lean roster, push $PH high',ph:true},
+        {d:'Wed',dt:'Wed 9 Jul', bgt:4000, base:3700, est:3700, def:22,min:14,max:28},
+        {d:'Thu',dt:'Thu 10 Jul',bgt:3600, base:3300, est:3300, def:20,min:14,max:26},
+        {d:'Fri',dt:'Fri 11 Jul',bgt:5600, base:5400, est:5400, def:26,min:14,max:30},
+        {d:'Sat',dt:'Sat 12 Jul',bgt:9600, base:9400, est:9400, def:30,min:14,max:34},
+        {d:'Sun',dt:'Sun 13 Jul',bgt:7200, base:7000, est:7000, def:26,min:14,max:32}
+       ]},
+      {label:'Week 3 — Steady Trade',maxHrs:160,
+       ctx:'Normal mid-month trade. Roster efficiently — match hours to what trade will support, keep $PH above benchmark, and protect some hours for Week 4.',
+       days:[
+        {d:'Mon',dt:'Mon 14 Jul',bgt:3000, base:2800, est:2800, def:18,min:14,max:26},
+        {d:'Tue',dt:'Tue 15 Jul',bgt:2600, base:2400, est:2400, def:18,min:14,max:24},
+        {d:'Wed',dt:'Wed 16 Jul',bgt:3800, base:3600, est:3600, def:20,min:14,max:28,note:'📦 Stock delivery',stock:true},
+        {d:'Thu',dt:'Thu 17 Jul',bgt:3400, base:3200, est:3200, def:20,min:14,max:26},
+        {d:'Fri',dt:'Fri 18 Jul',bgt:5200, base:5000, est:5000, def:24,min:14,max:30},
+        {d:'Sat',dt:'Sat 19 Jul',bgt:9200, base:9000, est:9000, def:28,min:14,max:34},
+        {d:'Sun',dt:'Sun 20 Jul',bgt:7000, base:6800, est:6800, def:26,min:14,max:30}
+       ]},
+      {label:'Week 4 — Final Push',maxHrs:165,
+       ctx:'Last week. Check your month-to-date first. Behind budget? Lean into your big days. Ahead? Protect $PH on quiet days. Every decision counts.',
+       days:[
+        {d:'Mon',dt:'Mon 21 Jul',bgt:3200, base:3000, est:3000, def:18,min:14,max:26},
+        {d:'Tue',dt:'Tue 22 Jul',bgt:2800, base:2600, est:2600, def:18,min:14,max:24},
+        {d:'Wed',dt:'Wed 23 Jul',bgt:4000, base:3800, est:3800, def:22,min:14,max:28},
+        {d:'Thu',dt:'Thu 24 Jul',bgt:3600, base:3400, est:3400, def:20,min:14,max:26},
+        {d:'Fri',dt:'Fri 25 Jul',bgt:5600, base:5400, est:5400, def:26,min:14,max:30},
+        {d:'Sat',dt:'Sat 26 Jul',bgt:9600, base:9400, est:9400, def:30,min:14,max:34,note:'Best Sat of last 3 wks'},
+        {d:'Sun',dt:'Sun 27 Jul',bgt:7200, base:7000, est:7000, def:26,min:14,max:30}
+       ]}
+    ]
+  },
+  B:{
+    id:'B',name:'Store B — Marina Lane Lifestyle',manager:'Alex',
+    hours:'9am–5pm',minHrs:10,bench:175,monthlyBudget:45000,maxHrsMonth:380,
+    avgBench:75,emailBench:75,bonusPH:38,bonusAvg:24,bonusEmail:20,bonusSales:50,
+    weeks:[
+      {label:'Week 1 — Cold Start',maxHrs:90,
+       ctx:'Cold snap forecast — strip stores see fewer customers in cold weather. Budget reflects a quieter week. Start lean, protect your $PH, and save hours for the weeks ahead.',
+       days:[
+        {d:'Mon',dt:'Mon 30 Jun',bgt:1200,base:2100,est:2100,def:14,min:10,max:20,note:'Cold forecast'},
+        {d:'Tue',dt:'Tue 1 Jul', bgt:1100,base:1750,est:1750,def:12,min:10,max:18},
+        {d:'Wed',dt:'Wed 2 Jul', bgt:1600,base:2450,est:2450,def:16,min:10,max:22},
+        {d:'Thu',dt:'Thu 3 Jul', bgt:1400,base:2100,est:2100,def:14,min:10,max:20},
+        {d:'Fri',dt:'Fri 4 Jul', bgt:2000,base:2800,est:2800,def:16,min:10,max:24},
+        {d:'Sat',dt:'Sat 5 Jul', bgt:3500,base:3850,est:3850,def:22,min:10,max:28},
+        {d:'Sun',dt:'Sun 6 Jul', bgt:2800,base:3150,est:3150,def:18,min:10,max:24}
+       ]},
+      {label:'Week 2 — Stock Delivery Week',maxHrs:85,
+       ctx:'Large stock delivery arriving Tuesday. Keep some hours in reserve — but stock hours count against $PH. Keep your floor hours focused on selling.',
+       days:[
+        {d:'Mon',dt:'Mon 7 Jul', bgt:1100,base:1750,est:1750,def:12,min:10,max:18},
+        {d:'Tue',dt:'Tue 8 Jul', bgt:1000,base:1400,est:1400,def:16,min:10,max:22,note:'📦 Big stock delivery',stock:true},
+        {d:'Wed',dt:'Wed 9 Jul', bgt:1500,base:2450,est:2450,def:14,min:10,max:20},
+        {d:'Thu',dt:'Thu 10 Jul',bgt:1300,base:2100,est:2100,def:14,min:10,max:20},
+        {d:'Fri',dt:'Fri 11 Jul',bgt:2000,base:2800,est:2800,def:16,min:10,max:24},
+        {d:'Sat',dt:'Sat 12 Jul',bgt:3300,base:3850,est:3850,def:22,min:10,max:28},
+        {d:'Sun',dt:'Sun 13 Jul',bgt:2500,base:3150,est:3150,def:18,min:10,max:24}
+       ]},
+      {label:'Week 3 — Festival Weekend!',maxHrs:120,
+       ctx:'🎉 Local music festival runs Friday to Sunday. Sales on those days are well above budget. You have extra hours this week — use them on festival days, keep Thursday lean.',
+       days:[
+        {d:'Mon',dt:'Mon 14 Jul',bgt:1100,base:1750,est:1750,def:12,min:10,max:18,note:'Normal trade'},
+        {d:'Tue',dt:'Tue 15 Jul',bgt:1000,base:1750,est:1750,def:12,min:10,max:16},
+        {d:'Wed',dt:'Wed 16 Jul',bgt:1500,base:2450,est:2450,def:14,min:10,max:20},
+        {d:'Thu',dt:'Thu 17 Jul',bgt:1300,base:2100,est:2100,def:14,min:10,max:20,note:'Trim — before festival'},
+        {d:'Fri',dt:'Fri 18 Jul',bgt:3500,base:5600,est:5600,def:28,min:10,max:34,note:'🎉 Festival begins'},
+        {d:'Sat',dt:'Sat 19 Jul',bgt:6500,base:10500,est:10500,def:34,min:10,max:40,note:'🎉 Festival peak'},
+        {d:'Sun',dt:'Sun 20 Jul',bgt:4800,base:7700,est:7700,def:28,min:10,max:36,note:'🎉 Festival day 2'}
+       ]},
+      {label:'Week 4 — Make or Break',maxHrs:105,
+       ctx:'Final week. Check your month-to-date before setting a single hour. Behind? Lean into Saturday. On track? Protect $PH on quiet days. This is where the month is decided.',
+       days:[
+        {d:'Mon',dt:'Mon 21 Jul',bgt:1200,base:2100,est:2100,def:12,min:10,max:18},
+        {d:'Tue',dt:'Tue 22 Jul',bgt:1100,base:1750,est:1750,def:12,min:10,max:16},
+        {d:'Wed',dt:'Wed 23 Jul',bgt:1600,base:2450,est:2450,def:14,min:10,max:20},
+        {d:'Thu',dt:'Thu 24 Jul',bgt:1400,base:2100,est:2100,def:14,min:10,max:20},
+        {d:'Fri',dt:'Fri 25 Jul',bgt:2100,base:2800,est:2800,def:18,min:10,max:26},
+        {d:'Sat',dt:'Sat 26 Jul',bgt:3800,base:3850,est:3850,def:22,min:10,max:28,note:'Biggest Sat of month'},
+        {d:'Sun',dt:'Sun 27 Jul',bgt:2900,base:3150,est:3150,def:18,min:10,max:24}
+       ]}
+    ]
+  }
+};
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function f$(n){return '$'+Math.round(n).toLocaleString();}
+function f1(n){return (Math.round(n*10)/10).toFixed(1);}
+function pct(a,b){return Math.round(a/b*100);}
+
+function showScreen(id){
+  var all=document.querySelectorAll('.screen');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Sales: actual sales = base + small boost/penalty vs formula hours
+// BUT est shown on card is FIXED and doesn't change — only $PH changes
+function calcSales(d,hrs){
+  var fHrs=d.base/sc.bench;
+  var diff=hrs-fHrs;
+  var boost;
+  if(d.ph){boost=diff>0?Math.min(diff*4,40):Math.max(diff*18,-150);}
+  else if(d.stock){boost=diff>0?Math.min(diff*7,60):Math.max(diff*16,-180);}
+  else{boost=diff>0?Math.min(diff*18,diff>8?144+(diff-8)*7:diff*18):Math.max(diff*22,-280);}
+  return Math.round(d.base+boost);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function addTap(id,fn){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();fn();},false);
+  el.addEventListener('click',fn,false);
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  addTap('card-a',function(){startSim('A');});
+  addTap('card-b',function(){startSim('B');});
+  addTap('btn-start-roster',function(){goRoster(0);});
+  addTap('r-submit',function(){
+    var btn=document.getElementById('r-submit');
+    if(!btn.disabled) submitWeek();
+  });
+  addTap('wres-next',function(){nextStep();});
+  addTap('btn-try-other',function(){showScreen('screen-pick');});
+  addTap('btn-back',function(){showScreen('screen-pick');});
+});
+
+function startSim(key){
+  sc=SC[key];cw=0;wkHrs=[];wkResults=[];mthSales=0;mthHrs=0;
+  buildEmail();
+  showScreen('screen-email');
+}
+
+// ── EMAIL ─────────────────────────────────────────────────────────────────────
+function buildEmail(){
+  document.getElementById('email-to').textContent=sc.manager+' — '+sc.name;
+  document.getElementById('email-intro').innerHTML=
+    'Hi '+sc.manager+',<br><br>Please find your July 2026 budget and rostering guide below. Use this to plan your roster before each week begins.<br><br>'+
+    '<strong>Monthly budget: '+f$(sc.monthlyBudget)+'</strong> &nbsp;·&nbsp; Monthly max hours: '+sc.maxHrsMonth+' hrs &nbsp;·&nbsp; Trading hours: '+sc.hours;
+  var html='<tr><th>Day</th><th>Date</th><th>Daily budget</th><th>Max hrs</th></tr>';
+  for(var wi=0;wi<sc.weeks.length;wi++){
+    var wk=sc.weeks[wi];
+    var wb=0;for(var j=0;j<wk.days.length;j++) wb+=wk.days[j].bgt;
+    html+='<tr class="wk-hdr"><td colspan="4">Week '+(wi+1)+' — '+wk.label+' (Budget: '+f$(wb)+' · Max: '+wk.maxHrs+' hrs)</td></tr>';
+    for(var j=0;j<wk.days.length;j++){
+      var d=wk.days[j];
+      var pc=d.ph?' class="ph-row"':'';
+      var pn=d.ph?' <em style="font-size:10px">(PH — lean roster, push $PH high)</em>':'';
+      html+='<tr'+pc+'><td><strong>'+d.d+'</strong></td><td>'+d.dt+(d.ph?' 🏖️':'')+'</td><td>'+f$(d.bgt)+pn+'</td><td>'+sc.minHrs+'–'+d.max+' hrs</td></tr>';
+    }
+  }
+  document.getElementById('email-table').innerHTML=html;
+  document.getElementById('email-bmarks').innerHTML=
+    '<strong>Your benchmarks for July:</strong><br>$PH target: <strong>'+f$(sc.bench)+'</strong> &nbsp;·&nbsp; '+
+    'Avg Sale: <strong>'+f$(sc.avgBench)+'</strong> &nbsp;·&nbsp; Email capture: <strong>'+sc.emailBench+'%</strong><br>'+
+    '<span style="font-size:12px">Formula: daily budget ÷ '+f$(sc.bench)+' = guideline hours. Use as a starting point, adjust based on how trade is tracking.</span>';
+  document.getElementById('email-min-note').innerHTML=
+    '⏱️ <strong>Minimum coverage = '+sc.minHrs+' hrs/day</strong> — minimum to open and close a '+sc.hours+
+    ' store with one person on floor and one for lunch/break cover. Slider will not go below '+sc.minHrs+' hrs.<br>'+
+    '🔓 <strong>Extra hours:</strong> if your prior week\'s sales were above budget, you can unlock extra hours for the following week. You don\'t have to use them — hold them in reserve, or use them to offset any over-use from previous weeks.';
+  document.getElementById('email-notes').innerHTML=
+    '<strong>Notes from Finance:</strong><br>'+
+    '• Always keep some hours in reserve — stock deliveries and strong trade days need a buffer<br>'+
+    '• If sales are tracking below budget mid-week, cut hours on remaining days immediately<br>'+
+    '• Public holidays: roster as lean as possible and push $PH as high as you can<br>'+
+    '• Your score is based purely on $PH efficiency — how well your hours match your sales. Avg Sale and Email Capture KPIs are tracked separately and not part of the rostering score<br><br>'+
+    'Questions? Reply to this email.<br><em>Lucy Reed · Finance · Ghanda Clothing</em>';
+}
+
+// ── ROSTER ────────────────────────────────────────────────────────────────────
+function goRoster(wi){
+  cw=wi;
+  var wk=sc.weeks[wi];
+  wkHrs=[];
+  for(var i=0;i<wk.days.length;i++) wkHrs.push(wk.days[i].def);
+  var effMax=wk.maxHrs;
+  if(wi>0){
+    var prev=wkResults[wi-1];
+    var pp=prev.sales/prev.budget;
+    if(pp>=1.08) effMax=Math.round(wk.maxHrs*1.15);
+    else if(pp>=1.00) effMax=Math.round(wk.maxHrs*1.08);
+  }
+  wk._effMax=effMax;
+  document.getElementById('r-title').textContent='Week '+(wi+1)+' Roster';
+  document.getElementById('r-sub').textContent=wk.label+' · Max '+effMax+' hrs';
+  document.getElementById('r-wk-num').textContent=wi+1;
+  var dots='';
+  for(var i=0;i<4;i++) dots+='<div class="wp-dot'+(i<wi?' done':i===wi?' active':'')+'"></div>';
+  document.getElementById('r-dots').innerHTML=dots;
+  buildContexts(wi,wk,effMax);
+  buildDays(wk);
+  updateSummary(wk,effMax);
+  showScreen('screen-roster');
+}
+
+function buildContexts(wi,wk,effMax){
+  var html='<div class="ctx">'+wk.ctx+'</div>';
+  if(wk.phNote) html+='<div class="ctx ph">⚠️ '+wk.phNote+'</div>';
+  if(wi>0&&effMax>wk.maxHrs){
+    var prev=wkResults[wi-1];
+    var pp=pct(prev.sales,prev.budget);
+    var extra=effMax-wk.maxHrs;
+    html+='<div class="ctx good">🔓 <strong>Extra hours available.</strong> Week '+wi+' came in at '+pp+'% of budget. Your max is now '+effMax+' hrs (up '+extra+' hrs). You don\'t have to use them all — hold some in reserve, or use them to offset any over-use from earlier weeks. Only add hours where trade will genuinely support it.</div>';
+  }
+  if(wi>=2){
+    var mp=pct(mthSales,sc.monthlyBudget);
+    var mph=mthSales/mthHrs;
+    var cls=mp>=95?'good':mp>=75?'':'warn';
+    html+='<div class="ctx '+cls+'">📊 <strong>Month to date:</strong> '+f$(mthSales)+' ('+mp+'% of budget) · $PH: '+f$(mph)+' · Still to earn: '+(mthSales>=sc.monthlyBudget?'Budget hit! 🎉':f$(sc.monthlyBudget-mthSales))+'</div>';
+  }
+  document.getElementById('r-contexts').innerHTML=html;
+}
+
+function buildDays(wk){
+  var html='';
+  for(var i=0;i<wk.days.length;i++){
+    var d=wk.days[i];
+    var hrs=wkHrs[i];
+    var calcPH=d.est/hrs;  // use fixed est for display
+    var phOk=d.ph?(calcPH>=sc.bench*1.4):(calcPH>=sc.bench);
+    var phColor=phOk?'var(--green)':d.ph?'var(--orange)':'var(--gold)';
+    var phLabel=d.ph?
+      ('Est. $PH '+f$(calcPH)+' '+(phOk?'✓ strong $PH':'↓ fewer hours = higher $PH')):
+      ('Est. $PH '+f$(calcPH)+' '+(phOk?'✓ above benchmark':'↓ below benchmark'));
+    var formulaHrs=(d.bgt/sc.bench).toFixed(1);
+    var formulaNote=d.ph?'PH day — lean roster, push $PH high':('formula: '+formulaHrs+' hrs');
+    var trendPct=pct(d.est,d.bgt);
+    var trendColor=trendPct>=100?'var(--green)':trendPct>=90?'var(--gold)':'var(--red)';
+    html+=
+      '<div class="day-card'+(d.ph?' ph-day':'')+'" id="dc'+i+'">'+
+        '<div class="day-hdr">'+
+          '<div><div class="day-name-big">'+d.d+(d.ph?' 🏖️':'')+' <span style="font-weight:400;font-size:11px;color:var(--grey)">'+d.dt+'</span></div></div>'+
+          '<div class="day-bgt-tag">'+f$(d.bgt)+'</div>'+
+        '</div>'+
+        (d.note?'<div class="day-note-line'+(d.ph?' ph':'')+'">'+d.note+'</div>':'')+
+        '<div class="day-body">'+
+          '<div style="font-size:11px;color:var(--grey);margin-bottom:8px">'+formulaNote+'</div>'+
+          '<div class="slider-row">'+
+            '<input type="range" min="'+d.min+'" max="'+d.max+'" step="0.5" value="'+hrs+'" oninput="updHrs('+i+',+this.value)" id="sl'+i+'">'+
+            '<span class="slider-val" id="sv'+i+'">'+f1(hrs)+' hrs</span>'+
+          '</div>'+
+          '<div class="day-est-info">'+
+            '<span class="ph-label" style="color:'+phColor+'" id="phl'+i+'">'+phLabel+'</span>'+
+            '<span class="trend-info">Prior week trend<br><strong style="color:var(--slate);font-size:13px">'+f$(d.est)+'</strong> <span style="color:'+trendColor+'">('+trendPct+'% of bgt)</span></span>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  }
+  document.getElementById('r-days').innerHTML=html;
+}
+
+function updHrs(i,v){
+  wkHrs[i]=v;
+  document.getElementById('sv'+i).textContent=f1(v)+' hrs';
+  var d=sc.weeks[cw].days[i];
+  // Use fixed est (prior week trend) for $PH display — doesn't change with hours
+  var calcPH=d.est/v;
+  var phOk=d.ph?(calcPH>=sc.bench*1.4):(calcPH>=sc.bench);
+  var phColor=phOk?'var(--green)':d.ph?'var(--orange)':'var(--gold)';
+  var phLabel=d.ph?
+    ('Est. $PH '+f$(calcPH)+' '+(phOk?'✓ strong $PH':'↓ fewer hours = higher $PH')):
+    ('Est. $PH '+f$(calcPH)+' '+(phOk?'✓ above benchmark':'↓ below benchmark'));
+  var el=document.getElementById('phl'+i);
+  if(el){el.textContent=phLabel;el.style.color=phColor;}
+  updateSummary(sc.weeks[cw],sc.weeks[cw]._effMax||sc.weeks[cw].maxHrs);
+}
+
+function updateSummary(wk,effMax){
+  var totalHrs=0;for(var i=0;i<wkHrs.length;i++) totalHrs+=wkHrs[i];
+  var rem=effMax-totalHrs;
+  // Use fixed est sales (prior week trend) for $PH — not the hours-adjusted model
+  var estSales=0;for(var i=0;i<wk.days.length;i++) estSales+=wk.days[i].est;
+  var estPH=estSales/totalHrs;
+  var wkBgt=0;for(var i=0;i<wk.days.length;i++) wkBgt+=wk.days[i].bgt;
+  var phOk=estPH>=sc.bench;
+  var boxCls=rem<0?'over':rem<15?'low':'ok';
+  document.getElementById('hrs-box').className='hrs-box '+boxCls;
+  document.getElementById('hrs-box').innerHTML=
+    '<strong>'+f1(totalHrs)+' / '+effMax+' hrs used</strong>'+
+    (rem>=0?' · <strong>'+f1(rem)+' hrs remaining</strong>':' · <strong style="color:var(--red)">⚠️ '+f1(Math.abs(rem))+' hrs over max</strong>')+
+    '<br><span style="font-size:12px;color:var(--slate)">Min '+sc.minHrs+' hrs/day ('+sc.hours+' · 1 person + cover). Est. $PH = est. sales ÷ total hrs — if hrs exceed the formula (budget ÷ '+f$(sc.bench)+'), $PH drops even when under the week max.</span>';
+  document.getElementById('r-summary').innerHTML=
+    '<div class="sb-row"><span class="sb-label">Est. week sales (prior week trend)</span><span class="sb-val '+(estSales>=wkBgt?'good':'warn')+'">'+f$(estSales)+'</span></div>'+
+    '<div class="sb-row"><span class="sb-label">Week budget</span><span class="sb-val">'+f$(wkBgt)+'</span></div>'+
+    '<div class="sb-row"><span class="sb-label">Est. week $PH</span><span class="sb-val '+(phOk?'good':'warn')+'">'+f$(estPH)+' '+(phOk?'✓':'↓')+'</span></div>'+
+    '<div class="sb-row"><span class="sb-label">Total hrs rostered</span><span class="sb-val '+(rem<0?'bad':rem<15?'warn':'good')+'">'+f1(totalHrs)+' hrs</span></div>';
+  document.getElementById('r-submit').disabled=(rem<-0.4);
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+function submitWeek(){
+  var wk=sc.weeks[cw];
+  var hrs=0;for(var i=0;i<wkHrs.length;i++) hrs+=wkHrs[i];
+  // Actual sales uses hours-adjusted model (for realism in results)
+  var daySales=[];for(var i=0;i<wk.days.length;i++) daySales.push(calcSales(wk.days[i],wkHrs[i]));
+  var wkSales=0;for(var i=0;i<daySales.length;i++) wkSales+=daySales[i];
+  var wkBgt=0;for(var i=0;i<wk.days.length;i++) wkBgt+=wk.days[i].bgt;
+  var wkPH=wkSales/hrs;
+  var phIdx=-1;for(var i=0;i<wk.days.length;i++){if(wk.days[i].ph){phIdx=i;break;}}
+  var phPH=phIdx>=0?daySales[phIdx]/wkHrs[phIdx]:null;
+  wkResults.push({sales:wkSales,hrs:hrs,ph:wkPH,budget:wkBgt,daySales:daySales,dayHrs:wkHrs.slice(),phPH:phPH});
+  mthSales+=wkSales;mthHrs+=hrs;
+  buildWeekResult(cw,wkSales,hrs,wkPH,wkBgt,daySales,phPH);
+  showScreen('screen-wres');
+}
+
+// ── WEEK RESULT ───────────────────────────────────────────────────────────────
+function buildWeekResult(wi,sales,hrs,ph,bgt,daySales,phPH){
+  var wk=sc.weeks[wi];
+  var isLast=wi===3;
+  var phOk=ph>=sc.bench;
+  var salesOk=sales>=bgt;
+  var pctWk=pct(sales,bgt);
+  var mthPct=pct(mthSales,sc.monthlyBudget);
+  var mthPH=mthSales/mthHrs;
+  var phPHOk=phPH!==null?(phPH>=sc.bench*1.4):null;
+  var bg=phOk&&salesOk?'linear-gradient(135deg,var(--green),#2E9E58)':salesOk||phOk?'linear-gradient(135deg,var(--teal),var(--teal-mid))':'linear-gradient(135deg,#4A6572,#6B8A96)';
+  document.getElementById('wres-hdr').style.background=bg;
+  document.getElementById('wres-title').textContent='Week '+(wi+1)+' Scorecard';
+  document.getElementById('wres-sub').textContent=wk.label;
+
+  function badge(hit,isOpp){
+    if(isOpp) return '<span class="kpi-badge opp">OPPORTUNITY</span>';
+    return '<span class="kpi-badge '+(hit?'hit':'miss')+'">'+(hit?'HIT':'MISS')+'</span>';
+  }
+  var effMax=wk._effMax||wk.maxHrs;
+  var hrsUsed=0;for(var i=0;i<wkResults[wi].dayHrs.length;i++) hrsUsed+=wkResults[wi].dayHrs[i];
+  var hrsRem=effMax-hrsUsed;
+
+  var sc_html='<div class="sc-hdr">THIS WEEK</div>';
+  sc_html+=
+    '<div class="sc-row">'+
+      '<div class="sc-icon">'+(salesOk?'✅':'📊')+'</div>'+
+      '<div class="sc-label"><div class="sc-label-main">Sales vs Budget'+badge(salesOk,false)+'</div>'+
+        '<div class="sc-label-sub">'+f$(sales)+' actual vs '+f$(bgt)+' budget (not in score — you can\'t control sales)</div></div>'+
+      '<div class="sc-result"><div class="sc-val '+(salesOk?'hit':'warn-c')+'">'+pctWk+'%</div>'+
+        '<div class="sc-sub">'+(sales>=bgt?'+':'−')+f$(Math.abs(sales-bgt))+'</div></div>'+
+    '</div>';
+  sc_html+=
+    '<div class="sc-row">'+
+      '<div class="sc-icon">'+(phOk?'✅':'⚠️')+'</div>'+
+      '<div class="sc-label"><div class="sc-label-main">$PH this week'+badge(phOk,false)+'</div>'+
+        '<div class="sc-label-sub">benchmark '+f$(sc.bench)+' — this is what your score is based on</div></div>'+
+      '<div class="sc-result"><div class="sc-val '+(phOk?'hit':'warn-c')+'">'+f$(ph)+'</div>'+
+        '<div class="sc-sub">'+(ph>=sc.bench?'+':'−')+f$(Math.abs(ph-sc.bench))+'</div></div>'+
+    '</div>';
+  sc_html+=
+    '<div class="sc-row">'+
+      '<div class="sc-icon">'+(hrsRem>=0?'🕐':'⚠️')+'</div>'+
+      '<div class="sc-label"><div class="sc-label-main">Hours used</div>'+
+        '<div class="sc-label-sub">max '+effMax+' hrs this week</div></div>'+
+      '<div class="sc-result"><div class="sc-val">'+f1(hrsUsed)+'</div>'+
+        '<div class="sc-sub '+(hrsRem<0?'miss':hrsRem<10?'warn-c':'hit')+'">'+(hrsRem>=0?f1(hrsRem)+' remaining':f1(Math.abs(hrsRem))+' over')+'</div></div>'+
+    '</div>';
+  if(phPH!==null){
+    sc_html+=
+      '<div class="sc-row">'+
+        '<div class="sc-icon">'+(phPHOk?'✅':'💡')+'</div>'+
+        '<div class="sc-label"><div class="sc-label-main">Public Holiday $PH'+badge(phPHOk,!phPHOk)+'</div>'+
+          '<div class="sc-label-sub">push $PH as high as possible — lean staffing</div></div>'+
+        '<div class="sc-result"><div class="sc-val '+(phPHOk?'hit':'warn-c')+'">'+f$(phPH)+'</div>'+
+          '<div class="sc-sub">'+(phPHOk?'Strong lean rostering ✓':'Try even fewer hours')+'</div></div>'+
+      '</div>';
+  }
+  sc_html+=
+    '<div class="sc-row total">'+
+      '<div class="sc-icon">📊</div>'+
+      '<div class="sc-label"><div class="sc-label-main">Month-to-date</div>'+
+        '<div class="sc-label-sub">'+mthPct+'% of '+f$(sc.monthlyBudget)+' · $PH '+f$(mthPH)+'</div></div>'+
+      '<div class="sc-result"><div class="sc-val '+(mthPct>=100?'hit':mthPct>=80?'warn-c':'miss')+'">'+f$(mthSales)+'</div>'+
+        '<div class="sc-sub">'+(mthSales>=sc.monthlyBudget?'Budget hit! 🎉':f$(sc.monthlyBudget-mthSales)+' to go')+'</div></div>'+
+    '</div>';
+  document.getElementById('wres-scorecard').innerHTML=sc_html;
+
+  var dHtml='<div class="sc-hdr">DAY BY DAY</div>';
+  for(var i=0;i<wk.days.length;i++){
+    var d=wk.days[i];
+    var ds=daySales[i];var dh=wkResults[wi].dayHrs[i];var dph=ds/dh;
+    dHtml+=
+      '<div style="padding:8px 14px;border-bottom:1px solid var(--teal-lt);display:flex;justify-content:space-between;align-items:center;font-size:12px">'+
+        '<span style="color:var(--slate)">'+d.d+' '+d.dt+(d.ph?' 🏖️':d.stock?' 📦':'')+'</span>'+
+        '<span style="text-align:right"><span class="'+(ds>=d.bgt?'good':'bad')+'" style="font-weight:600">'+f$(ds)+'</span>'+
+          '<br><span style="font-size:11px;color:var(--grey)">$PH '+f$(dph)+' · '+f1(dh)+' hrs</span></span>'+
+      '</div>';
+  }
+  document.getElementById('wres-days').innerHTML=dHtml;
+
+  var tip=makeTip(wi,sales,hrs,ph,bgt,wk,phPH,phPHOk);
+  document.getElementById('wres-tip').style.cssText='background:'+tip.bg+';border-color:'+tip.bc+';border-radius:14px;padding:16px;margin-bottom:12px;border:1.5px solid';
+  document.getElementById('wres-tip').innerHTML='<div class="tip-icon">'+tip.ic+'</div><div class="tip-title" style="color:'+tip.tc+'">'+tip.title+'</div><div class="tip-body">'+tip.body+'</div>';
+
+  var mtdEl=document.getElementById('wres-mtd');
+  if(wi>0){
+    mtdEl.style.display='block';
+    document.getElementById('wres-mtd-rows').innerHTML=
+      '<div class="mtd-row"><span style="color:var(--slate)">Sales to date</span><span style="font-weight:600">'+f$(mthSales)+'</span></div>'+
+      '<div class="mtd-row"><span style="color:var(--slate)">Monthly budget</span><span style="font-weight:600">'+f$(sc.monthlyBudget)+'</span></div>'+
+      '<div class="mtd-row"><span style="color:var(--slate)">% of budget</span><span class="sb-val '+(mthPct>=100?'good':mthPct>=80?'warn':'bad')+'" style="font-weight:600">'+mthPct+'%</span></div>'+
+      '<div class="mtd-row"><span style="color:var(--slate)">Month $PH so far</span><span class="sb-val '+(mthPH>=sc.bench?'good':'warn')+'" style="font-weight:600">'+f$(mthPH)+'</span></div>'+
+      '<div class="mtd-row"><span style="color:var(--slate)">Still to earn</span><span class="sb-val '+(mthSales>=sc.monthlyBudget?'good':'bad')+'" style="font-weight:600">'+(mthSales>=sc.monthlyBudget?'Budget hit! 🎉':f$(sc.monthlyBudget-mthSales))+'</span></div>';
+  } else {mtdEl.style.display='none';}
+  document.getElementById('wres-next').textContent=isLast?'See final results ›':'Set Week '+(wi+2)+' Roster ›';
+}
+
+function makeTip(wi,sales,hrs,ph,bgt,wk,phPH,phPHOk){
+  var phOk=ph>=sc.bench;var mp=pct(mthSales,sc.monthlyBudget);
+  if(wi===1&&phPH!==null){
+    return{ic:'🏖️',bg:'var(--orange-lt)',bc:'#F5C896',tc:'var(--orange)',title:'Public Holiday rostering',
+      body:'Your PH $PH came in at '+f$(phPH)+'. '+(phPHOk?'Good lean rostering — the fewer hours you run on a PH, the higher your $PH.':'There\'s room to push $PH higher on public holidays. Try rostering leaner next time — fewer hours = higher $PH when trade is concentrated on a PH.')+' Month is now at '+mp+'% of budget.'};
+  }
+  if(wi===0){
+    if(phOk) return{ic:'💪',bg:'var(--green-lt)',bc:'#5DCAA5',tc:'var(--green)',title:'Strong $PH in Week 1',
+      body:'$PH of '+f$(ph)+' is above your '+f$(sc.bench)+' benchmark. Keep that efficiency going. Next week: '+(sc.id==='A'?'holidays end and trade drops. Don\'t carry holiday-level hours into a normal week — and Tuesday is a public holiday, roster lean.':'stock delivery Tuesday needs hands but will hurt $PH. Keep some hours in reserve.')};
+    return{ic:'⚠️',bg:'var(--gold-lt)',bc:'#F0D899',tc:'var(--gold)',title:'$PH below benchmark',
+      body:'$PH came in at '+f$(ph)+' against a '+f$(sc.bench)+' benchmark. Too many hours relative to the sales you did. Next week: use the formula (budget ÷ '+f$(sc.bench)+') as your starting point and trim from there.'};
+  }
+  if(wi===2&&wk.label.indexOf('Festival')>=0){
+    var festHrs=0;for(var i=4;i<wkHrs.length;i++) festHrs+=wkHrs[i];
+    return{ic:'🎉',bg:'var(--purple-lt)',bc:'#C5B8F0',tc:'var(--purple)',title:'Festival weekend',
+      body:'You rostered '+f1(festHrs)+' hrs across the festival Fri–Sun. '+(festHrs>=60?'Good — you staffed up for the event.':'You may have left sales on the table. Festival weekends are when extra hours pay for themselves.')+' Month at '+mp+'%.'};
+  }
+  if(wi===3) return{ic:'📊',bg:'var(--teal-lt)',bc:'var(--teal-pal)',tc:'var(--teal)',title:'Month complete',
+    body:'Final: '+f$(mthSales)+' vs '+f$(sc.monthlyBudget)+' ('+mp+'%). Month $PH: '+f$(mthSales/mthHrs)+'.'};
+  return{ic:'📋',bg:'var(--teal-lt)',bc:'var(--teal-pal)',tc:'var(--teal)',title:'Week '+(wi+1)+' done',
+    body:'$PH: '+f$(ph)+' vs '+f$(sc.bench)+' benchmark. Month at '+mp+'%.'};
+}
+
+function nextStep(){if(cw<3) goRoster(cw+1); else buildFinal();}
+
+// ── FINAL SCORE ───────────────────────────────────────────────────────────────
+// Score is PURELY based on $PH efficiency (hours decisions)
+// Avg Sale and Email always hit (not rostering decisions)
+// Sales KPI shown but doesn't affect score
+
+function buildFinal(){
+  var mthPH=mthSales/mthHrs;
+  var mthPct=pct(mthSales,sc.monthlyBudget);
+  var phHit=mthPH>=sc.bench;
+  var salesHit=mthPct>=100;
+  // Avg sale and email always hit (not affected by rostering)
+  var avgHit=true;
+  var emailHit=true;
+  var phWeekResult=sc.id==='A'?wkResults[1]:null;
+  var phDayHit=phWeekResult&&phWeekResult.phPH>=sc.bench*1.4;
+
+  // SCORE: 100% based on $PH efficiency — hours decisions only
+  var lo=sc.bench*0.96;var hi=sc.bench*1.04;
+  var score;
+  if(mthPH<sc.bench*0.80) score=Math.max(0,Math.round((mthPH-sc.bench*0.60)/(sc.bench*0.20)*40));
+  else if(mthPH<lo) score=Math.round(40+(mthPH-sc.bench*0.80)/(sc.bench*0.16)*50);
+  else if(mthPH<=hi) score=90+(phHit?10:0);  // 90-100 in sweet spot
+  else if(mthPH<=sc.bench*1.15) score=Math.round(90-(mthPH-hi)/(sc.bench*0.11)*30);
+  else score=Math.max(30,Math.round(60-(mthPH-sc.bench*1.15)/(sc.bench*0.15)*30));
+  if(sc.id==='A'&&phDayHit) score=Math.min(100,score+5);
+  if(mthHrs>sc.maxHrsMonth*1.15) score=Math.max(0,score-10);
+  score=Math.min(100,Math.max(0,score));
+  var grade=score>=90?'A+':score>=80?'A':score>=70?'B':score>=60?'C':score>=50?'D':'F';
+
+  var bonus=(phHit?sc.bonusPH:0)+(avgHit?sc.bonusAvg:0)+(emailHit?sc.bonusEmail:0)+(salesHit?sc.bonusSales:0)+(phDayHit?10:0);
+  var maxBonus=sc.bonusPH+sc.bonusAvg+sc.bonusEmail+sc.bonusSales+(sc.id==='A'?10:0);
+
+  var bg=score>=80?'linear-gradient(135deg,var(--green),#2E9E58)':score>=60?'linear-gradient(135deg,var(--teal),var(--teal-mid))':'linear-gradient(135deg,#4A6572,#6B8A96)';
+  document.getElementById('final-hdr').style.background=bg;
+  document.getElementById('final-store').textContent=sc.name;
+  document.getElementById('final-num').textContent=score;
+  document.getElementById('final-grade').textContent=grade;
+  document.getElementById('final-bonus').innerHTML=
+    '<div class="bonus-lbl">Monthly bonus</div>'+
+    '<div class="bonus-amt" style="font-size:26px;margin:8px 0">'+(bonus>=maxBonus?'🎉 Full bonus unlocked!':bonus>0?'Partial bonus earned':'No bonus this month')+'</div>'+
+    '<div style="font-size:13px;color:var(--green);margin-top:4px">'+(bonus>=maxBonus?'You hit all KPIs this month':bonus>0?'You hit '+(phHit?1:0)+(salesHit?1:0)+2+' of '+(sc.id==="A"?5:4)+' KPIs — check the breakdown below':'Check KPI results below to see what to focus on next month')+'</div>';
+
+  var kpis=[
+    {name:'$PH',hit:phHit,opp:false,detail:f$(mthPH)+' vs '+f$(sc.bench)+' benchmark (full month)'},
+    {name:'Avg Sale',hit:true,opp:false,detail:'Always tracked · not a rostering decision'},
+    {name:'Email Capture',hit:true,opp:false,detail:'Always tracked · not a rostering decision'},
+    {name:'Sales vs Budget',hit:salesHit,opp:!salesHit,detail:mthPct+'% of '+f$(sc.monthlyBudget)+' — reflects trade conditions'}
+  ];
+  if(sc.id==='A') kpis.push({name:'PH Day $PH',hit:phDayHit,opp:!phDayHit,detail:(phWeekResult?f$(phWeekResult.phPH):'—')+' — '+(phDayHit?'lean rostering':'opportunity to go leaner')});
+
+  var kHtml='';
+  for(var i=0;i<kpis.length;i++){
+    var k=kpis[i];
+    var cls=k.opp?'kpi-opp':k.hit?'kpi-hit':'kpi-miss';
+    var status=k.opp?'💡 Opportunity':k.hit?'✓ Hit':'✗ Missed';
+    kHtml+='<div class="kpi-card '+cls+'"><div class="kpi-name">'+k.name+'</div><div class="kpi-status">'+status+'</div><div class="kpi-detail">'+k.detail+'</div></div>';
+  }
+  document.getElementById('final-kpis').innerHTML=kHtml;
+
+  var phPts=score;
+  document.getElementById('final-breakdown').innerHTML=
+    '<div class="slabel" style="margin-bottom:10px">Score breakdown</div>'+
+    '<div class="mtd-row"><span style="color:var(--slate);flex:1;padding-right:8px">$PH efficiency — month $PH '+f$(mthPH)+' vs '+f$(sc.bench)+' benchmark<br><span style="font-size:11px">Sweet spot: '+f$(Math.round(sc.bench*0.96))+'–'+f$(Math.round(sc.bench*1.04))+'. Over-rostering (low $PH) AND under-rostering (very high $PH) both cost points.</span></span><span style="font-weight:600">'+score+'/100</span></div>'+
+    '<div class="mtd-row"><span style="color:var(--grey);font-size:12px">Sales vs budget, avg sale, and email are shown as KPIs but not included in the score — these reflect trade conditions and team behaviours, not just rostering decisions.</span></div>';
+
+  var finalTip=score>=80?'Excellent rostering — you matched hours to trade throughout the month. That\'s exactly the skill this is testing.':score>=60?'Good effort. The opportunity: when sales soften, cut hours faster. When a big event hits, lean in. The formula (budget ÷ '+f$(sc.bench)+') is your guide every day.':'The key lesson: hours must move with trade. When sales drop below budget, cut hours the same day — not at month end. Every hour over the formula costs $PH.';
+  document.getElementById('final-tip').innerHTML=
+    '<div class="tip-icon">'+(score>=80?'🏆':score>=60?'📈':'💡')+'</div>'+
+    '<div class="tip-title" style="color:var(--teal)">'+(score>=80?'Strong month!':'Key takeaway')+'</div>'+
+    '<div class="tip-body">'+finalTip+'</div>';
+  showScreen('screen-final');
+}
+</script>
+</body>
+</html>
